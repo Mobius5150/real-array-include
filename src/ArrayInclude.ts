@@ -1,6 +1,11 @@
 const defaultAssertionFuncs: IIncludeMatchContext['assertionFuncs'] = {};
 let defaultMode: 'check' | 'assert' = 'check';
 
+/**
+ * Sets the default operation mode for all calls of `assertRealArrayInclude` and `assertRealInclude`
+ * @param mode Whether the functions should operate in check or assertion mode
+ * @param assertionFuncs The assertion functions to use when checking
+ */
 export function setDefaultMode(mode: 'check' | 'assert', assertionFuncs?: IIncludeMatchContext['assertionFuncs']) {
     switch (mode) {
         case 'check':
@@ -22,6 +27,29 @@ export function setDefaultMode(mode: 'check' | 'assert', assertionFuncs?: IInclu
         }
     }
 }
+
+/**
+ * Asserts that an array deep includes the children
+ * @param actual The actual array observed
+ * @param expected The expected array
+ * @param funcmode The mode for evaluating expected values that are functions. When `value` the function is treated as the value that is expected. When `matcher` the function is considered a test function and executed, with the first argument being the actual value. It should return true if the value matches expectation
+ */
+ export function assertRealArrayInclude(actual: Array<any>, expected: Array<any>, ctx: IIncludeMatchContext = {}): boolean {
+	ctx = initContextDefaults(ctx);
+    return _assertRealArrayInclude(actual, expected, ctx.path, ctx);
+}
+
+/**
+ * Asserts that an object deep includes the properties
+ * @param actual The actual object observed
+ * @param expected The expected object
+ * @param funcmode The mode for evaluating expected values that are functions. When `value` the function is treated as the value that is expected. When `matcher` the function is considered a test function and executed, with the first argument being the actual value. It should return true if the value matches expectation
+ */
+ export function assertRealInclude(actual: object, expected: object, ctx: IIncludeMatchContext = {}): boolean {
+	ctx = initContextDefaults(ctx);
+    return _assertRealInclude(actual, expected, ctx.path, ctx);
+}
+
 
 function loadDefaultAssertionFuncs() {
     if (defaultAssertionFuncs.fail && defaultAssertionFuncs.equal) {
@@ -74,7 +102,7 @@ export interface IIncludeMatchContext {
      * Which mode to run the library in.
      * 
      * 'assert' mode will throw exceptions for any failed assertions.
-     * 'check' mode will just return a failure.
+     * 'check' mode will return a boolean indicating `true` for pass, and `false` for failure.
      */
     mode?: 'check' | 'assert';
 
@@ -95,6 +123,7 @@ function initContextDefaults(ctx: IIncludeMatchContext): IIncludeMatchContext {
 	const newCtx: IIncludeMatchContext = {
 		funcmode: 'value',
         mode: defaultMode,
+        path: '$',
 		...ctx,
 		symbols: {},
         assertionFuncs: {
@@ -136,15 +165,9 @@ function assertTrue(expectation: boolean, message: string, ctx: IIncludeMatchCon
     return true;
 }
 
-/**
- * Asserts that an object deep includes the properties
- * @param actual The actual object observed
- * @param expected The expected object
- * @param path The current path (omit)
- * @param funcmode The mode for evaluating expected values that are functions. When `value` the function is treated as the value that is expected. When `matcher` the function is considered a test function and executed, with the first argument being the actual value. It should return true if the value matches expectation
- */
-export function assertRealInclude(actual: object, expected: object, path: string = '$', ctx: IIncludeMatchContext = {}) {
-	ctx = initContextDefaults(ctx);
+
+
+function _assertRealInclude(actual: object, expected: object, path: string = '$', ctx: IIncludeMatchContext = {}): boolean {
     try {
         const matchedKeys = new Set<string | symbol>();
         for (const expectedKey of [...Object.keys(expected), ...Object.getOwnPropertySymbols(expected)]) {
@@ -173,9 +196,9 @@ export function assertRealInclude(actual: object, expected: object, path: string
             const expectedVal = expected[expectedKey];
             if (typeof expectedVal === 'object') {
                 if (Array.isArray(expectedVal)) {
-                    assertRealArrayInclude(actual[actualKey], expectedVal, propPath, { ...ctx, mode: 'assert' });
+                    _assertRealArrayInclude(actual[actualKey], expectedVal, propPath, { ...ctx, mode: 'assert' });
                 } else {
-                    assertRealInclude(actual[actualKey], expectedVal, propPath, { ...ctx, mode: 'assert' })
+                    _assertRealInclude(actual[actualKey], expectedVal, propPath, { ...ctx, mode: 'assert' })
                 }
             } else if (typeof expectedVal === 'function' && ctx.funcmode === 'matcher') {
                 assertTrue(expectedVal(actual[actualKey], ctx), `Matcher function did not match expected value "${expectedVal}" at ${path}`, ctx);
@@ -209,15 +232,7 @@ export function assertRealInclude(actual: object, expected: object, path: string
     return true;
 }
 
-/**
- * Asserts that an array deep includes the children
- * @param actual The actual array observed
- * @param expected The expected array
- * @param path The current path (omit)
- * @param funcmode The mode for evaluating expected values that are functions. When `value` the function is treated as the value that is expected. When `matcher` the function is considered a test function and executed, with the first argument being the actual value. It should return true if the value matches expectation
- */
-export function assertRealArrayInclude(actual: Array<any>, expected: Array<any>, path: string = '$', ctx: IIncludeMatchContext = {}) {
-	ctx = initContextDefaults(ctx);
+function _assertRealArrayInclude(actual: Array<any>, expected: Array<any>, path: string = '$', ctx: IIncludeMatchContext = {}): boolean {
     try {
         const skipActuals = new Set<any>();
         for (const expectedIndex in expected) {
@@ -264,9 +279,9 @@ export function assertRealArrayInclude(actual: Array<any>, expected: Array<any>,
                 if (expectedType === 'object') {
                     try {
                         if (Array.isArray(expectedVal)) {
-                            found = assertRealArrayInclude(actual[actualIndex], expectedVal, expectedPath, ctx);
+                            found = _assertRealArrayInclude(actual[actualIndex], expectedVal, expectedPath, ctx);
                         } else {
-                            found = assertRealInclude(actual[actualIndex], expectedVal, expectedPath, ctx);
+                            found = _assertRealInclude(actual[actualIndex], expectedVal, expectedPath, ctx);
                         }
 
                         skipActuals.add(actualIndex);

@@ -34,19 +34,19 @@ describe('TestRealInclude', () => {
     it('[array] should fail when simple values arent found', () => {
         testBothModesMulti([
             
-            (mode) => assertRealArrayInclude(['a'], ['b'], undefined, { mode }),
+            (mode) => assertRealArrayInclude(['a'], ['b'], { mode }),
         
-            (mode) => assertRealArrayInclude(['a', 'c'], ['b'], undefined, { mode }),
+            (mode) => assertRealArrayInclude(['a', 'c'], ['b'], { mode }),
 
-            (mode) => assertRealArrayInclude(['a', 'c'], ['b', 'a'], undefined, { mode }),
+            (mode) => assertRealArrayInclude(['a', 'c'], ['b', 'a'], { mode }),
         
-            (mode) => assertRealArrayInclude(['1'], [1], undefined, { mode }),
+            (mode) => assertRealArrayInclude(['1'], [1], { mode }),
 
-            (mode) => assertRealArrayInclude([['a']], ['a'], undefined, { mode }),
+            (mode) => assertRealArrayInclude([['a']], ['a'], { mode }),
         
-            (mode) => assertRealArrayInclude(['a'], [['a']], undefined, { mode }),
+            (mode) => assertRealArrayInclude(['a'], [['a']], { mode }),
 
-            (mode) => assertRealArrayInclude([() => false], [() => false], undefined, { mode }),
+            (mode) => assertRealArrayInclude([() => false], [() => false], { mode }),
         ], 'throw');
     });
 
@@ -54,35 +54,35 @@ describe('TestRealInclude', () => {
         const tstFunc = () => false;
 
         testBothModesMulti([
-            (mode) => assertRealArrayInclude(['a'], [], undefined, { mode }),
+            (mode) => assertRealArrayInclude(['a'], [], { mode }),
 
-            (mode) => assertRealArrayInclude(['a'], ['a'], undefined, { mode }),
+            (mode) => assertRealArrayInclude(['a'], ['a'], { mode }),
 
-            (mode) => assertRealArrayInclude(['a', 'c'], ['a'], undefined, { mode }),
+            (mode) => assertRealArrayInclude(['a', 'c'], ['a'], { mode }),
 
-            (mode) => assertRealArrayInclude(['a', 'c'], ['c'], undefined, { mode }),
+            (mode) => assertRealArrayInclude(['a', 'c'], ['c'], { mode }),
 
-            (mode) => assertRealArrayInclude(['a', 'c'], ['a', 'c'], undefined, { mode }),
-            (mode) => assertRealArrayInclude(['a', 'c'], ['c', 'a'], undefined, { mode }),
-            (mode) => assertRealArrayInclude([1], [1], undefined, { mode }),
+            (mode) => assertRealArrayInclude(['a', 'c'], ['a', 'c'], { mode }),
+            (mode) => assertRealArrayInclude(['a', 'c'], ['c', 'a'], { mode }),
+            (mode) => assertRealArrayInclude([1], [1], { mode }),
 
-            (mode) => assertRealArrayInclude([['a']], [['a']], undefined, { mode }),
+            (mode) => assertRealArrayInclude([['a']], [['a']], { mode }),
 
-            (mode) => assertRealArrayInclude([tstFunc], [tstFunc], undefined, { mode }),
+            (mode) => assertRealArrayInclude([tstFunc], [tstFunc], { mode }),
         ], 'no-throw');
     });
 
     it('[obj] should fail when simple values arent found', () => {
         testBothModesMulti([
-            (mode) => assertRealInclude({'a': 'a'}, {'a': 'b'}, undefined, { mode }),
-            (mode) => assertRealInclude({'b': 'a'}, {'a': 'b'}, undefined, { mode }),
+            (mode) => assertRealInclude({'a': 'a'}, {'a': 'b'}, { mode }),
+            (mode) => assertRealInclude({'b': 'a'}, {'a': 'b'}, { mode }),
         ], 'throw');
     });
 
     it('[obj] should pass when simple values are found', () => {
         testBothModesMulti([
-            (mode) => assertRealInclude({'a': 'a'}, {'a': 'a'}, undefined, { mode }),
-            (mode) => assertRealInclude({'a': 'a', 'b': 'a'}, {'a': 'a', 'b': 'a'}, undefined, { mode }),
+            (mode) => assertRealInclude({'a': 'a'}, {'a': 'a'}, { mode }),
+            (mode) => assertRealInclude({'a': 'a', 'b': 'a'}, {'a': 'a', 'b': 'a'}, { mode }),
         ], 'no-throw');
     });
 
@@ -90,28 +90,24 @@ describe('TestRealInclude', () => {
         testBothModes(mode => assertRealArrayInclude(
             [ { 'a': 'a' }, { 'b': 'b' }  ], 
             [ { 'a': 'a' } ],
-            undefined, 
             { mode }),
             'no-throw');
 
         testBothModes(mode => assertRealArrayInclude(
             [ { 'a': 'a' }, { 'b': 'b' } ], 
             [ { 'b': 'b' } ],
-            undefined, 
             { mode }),
             'no-throw');
 
         testBothModes(mode => assertRealArrayInclude(
             [ 'b', { 'b': 'b' }, { 'a': 'a' } ],
             [ { 'a': 'a' }, 'b' ], 
-            undefined, 
             { mode }),
             'no-throw');
 
         testBothModes(mode => assertRealArrayInclude(
             [ { 'c': 'c' } ], 
             [ { 'b': 'b' }, { 'a': 'a' } ],
-            undefined, 
             { mode }),
             'throw');
     });
@@ -121,28 +117,24 @@ describe('TestRealInclude', () => {
         testBothModes(mode => assertRealInclude(
             { 'myval': 'abcdefg' },
             { 'myval': tstFunc },
-            undefined,
             { funcmode: 'matcher', mode }),
             'no-throw');
 
         testBothModes(mode => assertRealInclude(
             { 'myval': 'defg' },
             { 'myval': tstFunc },
-            undefined,
             { funcmode: 'matcher', mode }),
             'throw');
 
         testBothModes(mode => assertRealArrayInclude(
             [ 'myval', 'abcdefg' ],
             [ tstFunc ],
-            undefined,
             { funcmode: 'matcher', mode }),
             'no-throw');
 
         testBothModes(mode => assertRealArrayInclude(
             [ 'myval', 'defg' ],
             [ tstFunc ],
-            undefined,
             { funcmode: 'matcher', mode }),
             'throw');
     });
@@ -151,8 +143,7 @@ describe('TestRealInclude', () => {
         const sym = Symbol('a');
         testBothModes(mode => assertRealArrayInclude(
             [ 'a', { 'a': 'b', 'bde': 'a' }, 'e', 'a', ],
-            [ sym, { [sym]: 'b', 'bde': 'a' }, sym ],
-            undefined,
+            [ sym, { [sym]: 'b', 'bde': 'a' } ],
             { mode, symbols: {
                 [sym]: { }
             }}
@@ -161,7 +152,6 @@ describe('TestRealInclude', () => {
         testBothModes(mode => assertRealArrayInclude(
             [ 'a', { 'b': 'a'} ],
             [ sym, { [sym]: 'b' }, ],
-            undefined,
             { mode, symbols: {
                 [sym]: { }
             }}
@@ -170,7 +160,6 @@ describe('TestRealInclude', () => {
         testBothModes(mode => assertRealArrayInclude(
             [ 'abc', { 'abc': 'b'} ],
             [ sym, { [sym]: 'b' }, ],
-            undefined,
             { mode, symbols: {
                 [sym]: { matcher: v => !!v?.startsWith('a') }
             }}
@@ -179,7 +168,6 @@ describe('TestRealInclude', () => {
         testBothModes(mode => assertRealArrayInclude(
             [ 'bc', { 'bc': 'b'} ],
             [ sym, { [sym]: 'b' }, ],
-            undefined,
             { mode, symbols: {
                 [sym]: { matcher: v => !!v?.startsWith('a') }
             }}
