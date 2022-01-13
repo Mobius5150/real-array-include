@@ -1,6 +1,6 @@
 {
   "name": "real-array-includes",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A utility for checking if arrays and objects include search values",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,8 +15,7 @@
   "repository": {
     "url": "https://github.com/mobius5150/real-array-includes"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/chai": "^4.2.0",
     "@types/mocha": "^5.2.7",
