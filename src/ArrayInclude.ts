@@ -1,6 +1,10 @@
 const defaultAssertionFuncs: IIncludeMatchContext['assertionFuncs'] = {};
 let defaultMode: 'check' | 'assert' = 'check';
 
+type DeepPartial<T> = T extends object ? {
+    [P in keyof T]?: DeepPartial<T[P]>;
+} : T;
+
 /**
  * Sets the default operation mode for all calls of `assertRealArrayInclude` and `assertRealInclude`
  * @param mode Whether the functions should operate in check or assertion mode
@@ -34,7 +38,7 @@ export function setDefaultMode(mode: 'check' | 'assert', assertionFuncs?: IInclu
  * @param expected The expected array
  * @param funcmode The mode for evaluating expected values that are functions. When `value` the function is treated as the value that is expected. When `matcher` the function is considered a test function and executed, with the first argument being the actual value. It should return true if the value matches expectation
  */
- export function assertRealArrayInclude(actual: Array<any>, expected: Array<any>, ctx: IIncludeMatchContext = {}): boolean {
+ export function assertRealArrayInclude<R>(actual: DeepPartial<Array<DeepPartial<R>>>, expected: Array<R>, ctx: IIncludeMatchContext = {}): boolean {
 	ctx = initContextDefaults(ctx);
     return _assertRealArrayInclude(actual, expected, ctx.path, ctx);
 }
@@ -45,7 +49,7 @@ export function setDefaultMode(mode: 'check' | 'assert', assertionFuncs?: IInclu
  * @param expected The expected object
  * @param funcmode The mode for evaluating expected values that are functions. When `value` the function is treated as the value that is expected. When `matcher` the function is considered a test function and executed, with the first argument being the actual value. It should return true if the value matches expectation
  */
- export function assertRealInclude(actual: object, expected: object, ctx: IIncludeMatchContext = {}): boolean {
+ export function assertRealInclude<T extends object>(actual: DeepPartial<T>, expected: T, ctx: IIncludeMatchContext = {}): boolean {
 	ctx = initContextDefaults(ctx);
     return _assertRealInclude(actual, expected, ctx.path, ctx);
 }
