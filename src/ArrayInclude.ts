@@ -38,7 +38,7 @@ export function setDefaultMode(mode: 'check' | 'assert', assertionFuncs?: IInclu
  * @param expected The expected array
  * @param funcmode The mode for evaluating expected values that are functions. When `value` the function is treated as the value that is expected. When `matcher` the function is considered a test function and executed, with the first argument being the actual value. It should return true if the value matches expectation
  */
- export function assertRealArrayInclude<R>(actual: DeepPartial<Array<DeepPartial<R>>>, expected: Array<R>, ctx: IIncludeMatchContext = {}): boolean {
+ export function assertRealArrayInclude<E, A = Array<E>>(actual: DeepPartial<A>, expected: Array<E>, ctx: IIncludeMatchContext = {}): boolean {
 	ctx = initContextDefaults(ctx);
     return _assertRealArrayInclude(actual, expected, ctx.path, ctx);
 }
@@ -49,7 +49,7 @@ export function setDefaultMode(mode: 'check' | 'assert', assertionFuncs?: IInclu
  * @param expected The expected object
  * @param funcmode The mode for evaluating expected values that are functions. When `value` the function is treated as the value that is expected. When `matcher` the function is considered a test function and executed, with the first argument being the actual value. It should return true if the value matches expectation
  */
- export function assertRealInclude<T extends object>(actual: DeepPartial<T>, expected: T, ctx: IIncludeMatchContext = {}): boolean {
+ export function assertRealInclude<Expected, Actual = Expected>(actual: DeepPartial<Actual>, expected: Expected, ctx: IIncludeMatchContext = {}): boolean {
 	ctx = initContextDefaults(ctx);
     return _assertRealInclude(actual, expected, ctx.path, ctx);
 }
@@ -115,7 +115,7 @@ export interface IIncludeMatchContext {
      */
     assertionFuncs?: {
         fail?: (message: string) => void,
-        equal?: (expected: any, actual: any, message: string) => void;
+        equal?: (actual: any, expected: any, message: string) => void;
     };
 }
 
@@ -171,8 +171,16 @@ function assertTrue(expectation: boolean, message: string, ctx: IIncludeMatchCon
 
 
 
-function _assertRealInclude(actual: object, expected: object, path: string = '$', ctx: IIncludeMatchContext = {}): boolean {
+function _assertRealInclude(actual: any, expected: any, path: string = '$', ctx: IIncludeMatchContext = {}): boolean {
     try {
+		if (typeof actual !== 'object') {
+			ctx.assertionFuncs.equal(actual, expected, `Property does not match expected value: ${path}`);
+			return true;
+		} else if (typeof expected !== 'object') {
+			ctx.assertionFuncs.equal(actual, expected, `Property does not match expected value: ${path}`);
+			return true;
+		}
+
         const matchedKeys = new Set<string | symbol>();
         for (const expectedKey of [...Object.keys(expected), ...Object.getOwnPropertySymbols(expected)]) {
             let actualKey = expectedKey;
@@ -220,7 +228,7 @@ function _assertRealInclude(actual: object, expected: object, path: string = '$'
                     ctx.assertionFuncs.equal(actual[actualKey], symval.value, `Property symbol ${propPath} did not match expected value ${symval.value}`);
                 }
             } else {
-                ctx.assertionFuncs.equal(actual[actualKey], expectedVal, `Property does not match expected value: ${path}`);
+                ctx.assertionFuncs.equal(actual[actualKey], expectedVal, `Property does not match expected value: ${propPath}`);
             }
 
             matchedKeys.add(actualKey);
@@ -236,7 +244,7 @@ function _assertRealInclude(actual: object, expected: object, path: string = '$'
     return true;
 }
 
-function _assertRealArrayInclude(actual: Array<any>, expected: Array<any>, path: string = '$', ctx: IIncludeMatchContext = {}): boolean {
+function _assertRealArrayInclude(actual: any, expected: Array<any>, path: string = '$', ctx: IIncludeMatchContext = {}): boolean {
     try {
         const skipActuals = new Set<any>();
         for (const expectedIndex in expected) {
